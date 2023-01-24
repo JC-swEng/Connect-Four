@@ -1,8 +1,11 @@
+from enum import Enum
+
+class ColorEnum(Enum):
+        Yellow = "Y"
+        Red = "R"
 
 class ConnectFourBoard:
-    class ColorEnum(Enum):
-        Yellow = 1
-        Red = 2
+    
    
     def __init__(self, c: int = 7, r: int = 6, w: int = 4) -> None:  
         self.num_cols = c #number of columns set by user, max is 26 (A-Z) min is 4
@@ -18,7 +21,7 @@ class ConnectFourBoard:
             print(str(row_count) + "  " + "  ".join(row))           
 
         column_title = [chr(x + ord("A")) for x in range(self.num_cols)] #create a list of column headers starting at "A"
-        print("   " + " ".join(column_title))
+        print("   " + "  ".join(column_title))
 
 
     #function for checking the validity of a chosen column. Checks if col exists and is not full. 
@@ -26,9 +29,9 @@ class ConnectFourBoard:
         col_i = ord(col) #using UNICODE of capital letters    
         unicode_A = ord("A")  # ord("A") == 65 
         if col_i < unicode_A or col_i > unicode_A -1 + self.num_cols: #max board size is 26 (A-Z)
-            return 1 #error code 1 = column doesn't exist
+            return -1 #error code -1 = column doesn't exist. TODO replace with Enum codes
         elif len(self.columns[col_i - unicode_A]) >= self.num_rows:
-            return 2 #error code 2 = column is full
+            return -2 #error code -2 = column is full
         else:
             return col_i - unicode_A
 
@@ -42,6 +45,7 @@ class ConnectFourBoard:
                         return True
                 else:
                     return False
+        return False
 
     def __horizontal_win(self, row: int, col: int, color: str) -> bool:
 
@@ -55,8 +59,7 @@ class ConnectFourBoard:
 
         return 1 + left_count + right_count >= self.win_req   #current new piece + # of same color on left + # of same color on right
 
-    def __diagonal_win(self, row: int, col: int, color: str) -> bool:
-
+    def __diagonal_neg_slope(self, row: int, col: int, color: str) -> bool:
         #check upper left diagonal + lower right diagonal (negative slope)
         up_left, down_right = 0, 0
         while col - 1 - up_left >= 0 and row - 1 - up_left >= 0:
@@ -69,7 +72,9 @@ class ConnectFourBoard:
                 down_right += 1
             else:
                 break
+        return up_left + down_right >= self.win_req
 
+    def __diagonal_pos_slope(self, row: int, col: int, color: str) -> bool:
         #check upper right diagonal + lower left diagonal (positive slope)
         up_right, down_left = 0, 0
         while col - 1 - down_left >= 0 and row + 1 + down_left < self.num_rows:
@@ -82,11 +87,10 @@ class ConnectFourBoard:
                 up_right += 1
             else:
                 break
-
-        return (1 + up_left + down_right >= self.win_req) or (1 + up_right + down_left >= self.win_req)
+        return up_right + down_left >= self.win_req
 
     def check_win(self, row: int, col: int, color: str) -> bool:
-        return __vertical_win(row, col, color) or __horizontal_win(row, col, color) or __diagonal_win(row, col, color)
+        return  self.__vertical_win(row, col, color) or self.__horizontal_win(row, col, color) or self.__diagonal_neg_slope(row, col, color) or self.__diagonal_pos_slope(row, col, color)
 
 
 
@@ -98,7 +102,8 @@ class GameLoop:
         self.winner = None
         self.board = ConnectFourBoard()  #TODO add capability to change board size and win requirement
 
-    def __game_won():
+    def __game_won(self, player: str):
+        self.board.print_board()
         print(player, "you win!! Press R to restart, or X to exit the game.")
         response = str(input()).capitalize() 
         if response == "R":
@@ -106,32 +111,33 @@ class GameLoop:
         else:
             self.winner = player
 
-    def new_turn(player: str, color: str) -> None:
+    def new_turn(self, player: str, color: str) -> None:
+        self.board.print_board()
+
         print(player, "it is your turn. Enter the column you would like to add a piece to (A-G):")
         col_chosen = str(input()).capitalize() #TODO turn this query into a function, allow different input types
         
         col_code = self.board.check_col(col_chosen)  #TODO turn this into separate GameLoop method
-        while col_code < 3:
-            if col_code == 1:
-                print(player1 + ", that column does not exist. Please pick another column ():") #TODO change to show flexible board size
-                col = str(input()).capitalize()
+        while col_code < 0:
+            if col_code == -1:
+                print(player + ", that column does not exist. Please pick another column ():") #TODO change to show flexible board size
+                col_chosen = str(input()).capitalize()
                 col_code = self.board.check_col(col_chosen)
             else:
-                print(player1 + ", that column is full. Please pick another column ():") # TODO change to show flexible board size
-                col = str(input()).capitalize()
+                print(player + ", that column is full. Please pick another column ():") # TODO change to show flexible board size
+                col_chosen = str(input()).capitalize()
                 col_code = self.board.check_col(col_chosen)
         col_i = col_code
 
         self.board.columns[col_i].append(color)
         new_row, new_col = self.board.num_rows - len(self.board.columns[col_i]), col_i 
 
-        #add new piece to board and print current board
+        #add new piece to board
         self.board.current[new_row][new_col] = color
-        self.board.print_board()
-
+        
         #check if new piece resulted in win
         if self.board.check_win(new_row, new_col, color):
-            self.__game_won()
+            self.__game_won(player)
 
 
     
@@ -153,6 +159,7 @@ while not new_game.winner:
 
 
 def tests() -> bool:
+    return None
     #TODO add tests ..............................
     #check if board is printed correctly
     #check if pieces are added correctly
