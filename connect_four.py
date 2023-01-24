@@ -42,25 +42,48 @@ class ConnectFourBoard:
                         return True
                 else:
                     return False
-        
-        return False  #this return shouldn't be necessary
 
     def __horizontal_win(self, row: int, col: int, color: str) -> bool:
-        #TODO change logic to be # of same color on left + # of same color on right
-        adjacent_count = 0
-        for col in range(self.num_cols): 
-            if self.current[row][col] == color:
-                adjacent_count += 1
-                if adjacent_count >= self.win_req:
-                    return True
-            else:
-                    adjacent_count = 0
-        
-        return False
+
+        left_count, right_count = 0, 0
+
+        while col - 1 - left_count >= 0 and self.current[row][col - 1 - left_count] == color: #while there is a column to the left and that piece is of same color
+            left_count += 1
+
+        while col + 1 + right_count < self.num_cols and self.current[row][col + 1 + right_count] == color: #while there is a column to the right and that piece is of same color
+            right_count += 1 
+
+        return 1 + left_count + right_count >= self.win_req   #current new piece + # of same color on left + # of same color on right
 
     def __diagonal_win(self, row: int, col: int, color: str) -> bool:
-        return False
-        #TODO.........................................
+
+        #check upper left diagonal + lower right diagonal (negative slope)
+        up_left, down_right = 0, 0
+        while col - 1 - up_left >= 0 and row - 1 - up_left >= 0:
+            if self.current[row - 1 - up_left][col - 1 - up_left] == color:
+                up_left += 1
+            else:
+                break
+        while col + 1 + down_right < self.num_cols and row + 1 + down_right < self.num_rows:
+            if self.current[row + 1 + down_right][col + 1 + down_right] == color:
+                down_right += 1
+            else:
+                break
+
+        #check upper right diagonal + lower left diagonal (positive slope)
+        up_right, down_left = 0, 0
+        while col - 1 - down_left >= 0 and row + 1 + down_left < self.num_rows:
+            if self.current[row + 1 + down_left][col - 1 - down_left] == color:
+                down_left += 1
+            else:
+                break
+        while col + 1 + up_right < self.num_cols and row - 1 - up_right >= 0:
+            if self.current[row - 1 - up_right][col + 1 + up_right] == color:
+                up_right += 1
+            else:
+                break
+
+        return (1 + up_left + down_right >= self.win_req) or (1 + up_right + down_left >= self.win_req)
 
     def check_win(self, row: int, col: int, color: str) -> bool:
         return __vertical_win(row, col, color) or __horizontal_win(row, col, color) or __diagonal_win(row, col, color)
