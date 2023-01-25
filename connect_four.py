@@ -37,7 +37,8 @@ class ConnectFourBoard:
         else:
             return col_i - unicode_A
 
-    def insert_new_piece(self, row: int, col: int, color: str) -> bool:
+    def insert_new_piece(self, col: int, color: str) -> bool:
+        row = self.num_rows - len(self.columns[col])
         self.columns[col].append(color)
         self.current[row][col] = color
         return True
@@ -121,25 +122,23 @@ class GameLoop:
     def new_turn(self, player: str, color: str) -> None:
         self.board.print_board()
 
-        print(f"{player}, it is your turn. Enter the column you would like to add a piece to (A-G):")
+        print(f"{player}, it is your turn. Enter the column you would like to add a piece to (A-{chr(ord("A")-1+self.board.num_cols)}):")
         col_chosen = str(input()).capitalize() #TODO turn this query into a function, allow different input types
         
         col_code = self.board.check_col(col_chosen)  #TODO turn this into separate GameLoop method
         while col_code < 0:
             if col_code == -1:
-                print(f"{player}, that column does not exist. Please pick another column ():") #TODO change to show flexible board size
+                print(f"{player}, that column does not exist. Please pick another column (A-{chr(ord("A")-1+self.board.num_cols)}):") 
                 col_chosen = str(input()).capitalize()
                 col_code = self.board.check_col(col_chosen)
             else:
-                print(f"{player}, that column is full. Please pick another column ():") # TODO change to show flexible board size
+                print(f"{player}, that column is full. Please pick another column (A-{chr(ord("A")-1+self.board.num_cols)}):") 
                 col_chosen = str(input()).capitalize()
                 col_code = self.board.check_col(col_chosen)
         col_i = col_code
         
-        new_row, new_col = self.board.num_rows - len(self.board.columns[col_i]), col_i 
-
         #add new piece to board and to columns matrix
-        self.board.insert_new_piece(new_row, new_col, color)
+        self.board.insert_new_piece(col_i, color)
         
         #check if new piece resulted in win
         if self.board.check_win(new_row, new_col, color):
