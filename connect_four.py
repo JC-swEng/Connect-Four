@@ -6,7 +6,6 @@ class ColorEnum(Enum):
 
 class ConnectFourBoard:
     
-   
     def __init__(self, c: int = 7, r: int = 6, w: int = 4) -> None:  
         self.num_cols = c #number of columns set by user, max is 26 (A-Z) min is 4
         self.num_rows = r #number of rows set by user, min is 4
@@ -15,13 +14,13 @@ class ConnectFourBoard:
         self.columns = [[] for _ in range(c)]
 
     #function for printing out the current board and pieces played
-    def print_board(self) -> None:
+    def print_board(self) -> None: #TODO make this __str__ and add print output into game class
 
         for row_count, row in enumerate(self.current):
-            print(str(row_count) + "  " + "  ".join(row))           
+            print(f"{row_count}  {"  ".join(row)}")          
 
         column_title = [chr(x + ord("A")) for x in range(self.num_cols)] #create a list of column headers starting at "A"
-        print("   " + "  ".join(column_title))
+        print(f"   {"  ".join(column_title)}")
 
 
     #function for checking the validity of a chosen column. Checks if col exists and is not full. 
@@ -34,6 +33,10 @@ class ConnectFourBoard:
             return -2 #error code -2 = column is full
         else:
             return col_i - unicode_A
+
+    def insert_new_piece(self, row: int, col: int, color: str) -> bool:
+        self.board.current[row][col] = color
+        return True
 
     def __vertical_win(self, row: int, col: int, color: str) -> bool:
         if row <= self.num_rows - self.win_req: #if the current row is high enough to have a winning quantity
@@ -133,7 +136,7 @@ class GameLoop:
         new_row, new_col = self.board.num_rows - len(self.board.columns[col_i]), col_i 
 
         #add new piece to board
-        self.board.current[new_row][new_col] = color
+        self.board.insert_new_piece(new_row, new_col, color)
         
         #check if new piece resulted in win
         if self.board.check_win(new_row, new_col, color):
