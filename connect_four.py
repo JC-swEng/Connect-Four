@@ -13,6 +13,9 @@ class ConnectFourBoard:
         self.current = [["_"]*self.num_cols for _ in range(self.num_rows)]
         self.columns = [[] for _ in range(c)]
 
+    #string representation of the board 
+    def __str__(self) -> str:
+
     #function for printing out the current board and pieces played
     def print_board(self) -> None: #TODO make this __str__ and add print output into game class
 
@@ -35,7 +38,8 @@ class ConnectFourBoard:
             return col_i - unicode_A
 
     def insert_new_piece(self, row: int, col: int, color: str) -> bool:
-        self.board.current[row][col] = color
+        self.columns[col].append(color)
+        self.current[row][col] = color
         return True
 
     def __vertical_win(self, row: int, col: int, color: str) -> bool:
@@ -107,7 +111,7 @@ class GameLoop:
 
     def __game_won(self, player: str):
         self.board.print_board()
-        print(player, "you win!! Press R to restart, or X to exit the game.")
+        print(f"{player}, you win!! Press R to restart, or X to exit the game.")
         response = str(input()).capitalize() 
         if response == "R":
             self.board = ConnectFourBoard() #TODO what is best way to reinitialize the game? 
@@ -117,25 +121,24 @@ class GameLoop:
     def new_turn(self, player: str, color: str) -> None:
         self.board.print_board()
 
-        print(player, "it is your turn. Enter the column you would like to add a piece to (A-G):")
+        print(f"{player}, it is your turn. Enter the column you would like to add a piece to (A-G):")
         col_chosen = str(input()).capitalize() #TODO turn this query into a function, allow different input types
         
         col_code = self.board.check_col(col_chosen)  #TODO turn this into separate GameLoop method
         while col_code < 0:
             if col_code == -1:
-                print(player + ", that column does not exist. Please pick another column ():") #TODO change to show flexible board size
+                print(f"{player}, that column does not exist. Please pick another column ():") #TODO change to show flexible board size
                 col_chosen = str(input()).capitalize()
                 col_code = self.board.check_col(col_chosen)
             else:
-                print(player + ", that column is full. Please pick another column ():") # TODO change to show flexible board size
+                print(f"{player}, that column is full. Please pick another column ():") # TODO change to show flexible board size
                 col_chosen = str(input()).capitalize()
                 col_code = self.board.check_col(col_chosen)
         col_i = col_code
-
-        self.board.columns[col_i].append(color)
+        
         new_row, new_col = self.board.num_rows - len(self.board.columns[col_i]), col_i 
 
-        #add new piece to board
+        #add new piece to board and to columns matrix
         self.board.insert_new_piece(new_row, new_col, color)
         
         #check if new piece resulted in win
