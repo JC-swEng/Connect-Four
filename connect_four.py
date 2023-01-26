@@ -1,12 +1,13 @@
 from enum import Enum
 
 class ColorEnum(Enum):
-    Yellow = "Y"
-    Red = "R"
+    YELLOW = "Y"
+    RED = "R"
 
 class ErrorCodes(Enum):
-    col_invalid = 1
-    col_full = 2
+    VALID = 0
+    COL_INVALID = 1
+    COL_FULL = 2
 
 class ConnectFourBoard:
     
@@ -26,24 +27,21 @@ class ConnectFourBoard:
         return board_str
 
     #function for checking the validity of a chosen column. Checks if col exists and is not full. 
-    def check_col(self, col: str) -> int:   
-        col_i = ord(col) #using UNICODE of capital letters    
+    def check_col(self, col: str) -> ErrorCodes:   
+        col_unicode = ord(col) #using UNICODE of capital letters    
         unicode_A = ord("A")  # ord("A") == 65 
-        if col_i < unicode_A or col_i > unicode_A -1 + self.num_cols: #max board size is 26 (A-Z)
-            return -1 #error code -1 = column doesn't exist. TODO replace with Enum codes
-        elif len(self.columns[col_i - unicode_A]) >= self.num_rows:
-            return -2 #error code -2 = column is full
+        if col_unicode < unicode_A or col_unicode > unicode_A -1 + self.num_cols: #max board size is 26 (A-Z)
+            return ErrorCodes.COL_INVALID #error code 1 = column doesn't exist. TODO replace with Enum codes
+        elif len(self.columns[col_unicode - unicode_A]) >= self.num_rows:
+            return ErrorCodes.COL_FULL #error code 2 = column is full
         else:
-            return col_i - unicode_A
+            return ErrorCodes.VALID
 
     def insert_new_piece(self, col: int, color) -> int:
         row = (self.num_rows - 1 - len(self.columns[col]))
-        print(f"1, row is {row}, col is {col}")
         self.columns[col].append(color)
-        print("2")
         self.current[row][col] = color
-        print("3")
-        return row
+        return 0
 
     def __vertical_win(self, row: int, col: int, color: str) -> bool:
         if row <= self.num_rows - self.win_req: #if the current row is high enough to have a winning quantity
@@ -102,7 +100,8 @@ class ConnectFourBoard:
                 break
         return up_right + down_left >= self.win_req
 
-    def check_win(self, row: int, col: int, color: str) -> bool:
+    def check_win(self, col: int, color: str) -> bool:
+        row = (self.num_rows - len(self.columns[col]))
         return  self.__vertical_win(row, col, color) or self.__horizontal_win(row, col, color) or self.__diagonal_neg_slope(row, col, color) or self.__diagonal_pos_slope(row, col, color)
 
 
@@ -115,7 +114,7 @@ class GameLoop:
         self.winner = None
         self.board = ConnectFourBoard()  #TODO add capability to change board size and win requirement
 
-    def __game_won(self, player: str):
+    def __game_won(self, player: str) -> None:
         print(str(self.board))
         print(f"{player}, you win!! Press R to restart, or X to exit the game.")
         response = str(input()).capitalize() 
@@ -131,8 +130,8 @@ class GameLoop:
         col = str(input()).capitalize() #TODO turn this query into a function, allow different input types
 
         col_code = self.board.check_col(col)
-        while col_code < 0:
-            if col_code == -1:
+        while col_code is not ErrorCodes.VALID:
+            if col_code is ErrorCodes.COL_INVALID:
                 print(f"{player}, that column does not exist. Please pick another column (A-{last_col}):") 
                 col = str(input()).capitalize()
                 col_code = self.board.check_col(col)
@@ -141,7 +140,7 @@ class GameLoop:
                 col = str(input()).capitalize()
                 col_code = self.board.check_col(col)
         
-        return col_code
+        return ord(col) - ord('A')
 
     def new_turn(self, player: str, color: str) -> None:
         print(str(self.board))
@@ -150,10 +149,10 @@ class GameLoop:
         col_i = self.__select_col(player)
         
         #add new piece to board and to columns matrix
-        row_i = self.board.insert_new_piece(col_i, color)
+        self.board.insert_new_piece(col_i, color)
         
         #check if new piece resulted in win
-        if self.board.check_win(row_i, col_i, color):
+        if self.board.check_win(col_i, color):
             self.__game_won(player)
 
 
@@ -170,10 +169,10 @@ player2 = str(input())
 
 while not new_game.winner:
     #first player's turn
-    new_game.new_turn(player1, ColorEnum.Yellow.value)
+    new_game.new_turn(player1, ColorEnum.YELLOW.value)
     
     #second player's turn
-    new_game.new_turn(player2, ColorEnum.Red.value)
+    new_game.new_turn(player2, ColorEnum.RED.value)
 
 
 def tests() -> bool:
