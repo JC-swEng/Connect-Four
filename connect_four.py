@@ -38,12 +38,16 @@ class ConnectFourBoard:
         else:
             return ErrorCode.VALID
 
-    def insert_new_piece(self, col: int, color) -> None:
-        row = (self.num_rows - 1 - len(self.columns[col]))
-        self.columns[col].append(color)
-        self.current[row][col] = color
+    def __is_board_full(self) -> None:
         if sum(len(col) for col in self.columns) >= self.num_cols * self.num_rows:
             self.board_full = True
+        return None
+
+    def insert_new_piece(self, col: int, color) -> None:
+        row = self.num_rows - 1 - len(self.columns[col])
+        self.columns[col].append(color)
+        self.current[row][col] = color
+        self.__is_board_full()
         return None
 
     def __vertical_win(self, row: int, col: int, color: str) -> bool:
@@ -104,7 +108,7 @@ class ConnectFourBoard:
         return up_right + down_left >= self.win_req
 
     def check_win(self, col: int, color: str) -> bool:
-        row = (self.num_rows - len(self.columns[col]))
+        row = self.num_rows - len(self.columns[col])
         return  self.__vertical_win(row, col, color) or self.__horizontal_win(row, col, color) or self.__diagonal_neg_slope(row, col, color) or self.__diagonal_pos_slope(row, col, color)
 
 
