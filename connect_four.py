@@ -17,7 +17,6 @@ class ConnectFourBoard:
         self.win_req = w #win requirement set by user
         self.current = [["_"]*self.num_cols for _ in range(self.num_rows)]
         self.columns = [[] for _ in range(c)]
-        self.board_full = False
 
     #string representation of the board 
     def __str__(self) -> str:
@@ -38,16 +37,15 @@ class ConnectFourBoard:
         else:
             return ErrorCode.VALID
 
-    def __is_board_full(self) -> None:
+    def is_board_full(self) -> bool:
         if sum(len(col) for col in self.columns) >= self.num_cols * self.num_rows:
-            self.board_full = True
-        return None
+            return True
+        return False
 
     def insert_new_piece(self, col: int, color) -> None:
         row = self.num_rows - 1 - len(self.columns[col])
         self.columns[col].append(color)
         self.current[row][col] = color
-        self.__is_board_full()
         return None
 
     def __vertical_win(self, row: int, col: int, color: str) -> bool:
@@ -186,7 +184,8 @@ class GameLoop:
             self.winner = player
             self.play = False
         
-        if self.board.board_full:
+        #check if board is full, possible draw scenario
+        if self.board.is_board_full:
             self.play = False
 
 
