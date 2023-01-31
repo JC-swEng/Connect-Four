@@ -38,9 +38,7 @@ class ConnectFourBoard:
             return ErrorCode.VALID
 
     def is_board_full(self) -> bool:
-        if sum(len(col) for col in self.columns) >= self.num_cols * self.num_rows:
-            return True
-        return False
+        return sum(len(col) for col in self.columns) >= self.num_cols * self.num_rows
 
     def insert_new_piece(self, col: int, color) -> None:
         row = self.num_rows - 1 - len(self.columns[col])
@@ -185,7 +183,7 @@ class GameLoop:
             self.play = False
         
         #check if board is full, possible draw scenario
-        if self.board.is_board_full:
+        if self.board.is_board_full():
             self.play = False
 
 
