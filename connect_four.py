@@ -107,7 +107,20 @@ class ConnectFourBoard:
         row = self.num_rows - len(self.columns[col])
         return  self.__vertical_win(row, col, color) or self.__horizontal_win(row, col, color) or self.__diagonal_neg_slope(row, col, color) or self.__diagonal_pos_slope(row, col, color)
 
+class InputOutput:
+    def __init__(self) -> None:
 
+    def game_over_IO(self, winner: str) -> str:
+        if winner:
+            print(str(new_game.board)) # is this poor ettiquette? using new_game GameLoop instance to call the current board? 
+            print(f"{winner}, you win!! Press R to restart, or press any key to exit the game.")
+            response = str(input()).capitalize() 
+        else: # __game_over has been called without a winner
+            print(f"The game has ended in a draw. Press R to restart, or press any key to exit the game.")
+            response = str(input()).capitalize()
+        
+        return response
+    
 
 # Main gameplay. Set as while loop to play until exited.
 class GameLoop: 
@@ -118,6 +131,7 @@ class GameLoop:
         self.player1 = None
         self.player2 = None
         #self.cols, self.rows, self.win_len = self.game_setup()
+        self.IO = InputOutput()
         self.board = ConnectFourBoard()  #TODO add capability to change board size and win requirement
 
     '''def game_setup() -> int:
@@ -134,13 +148,8 @@ class GameLoop:
                 response = str(input()).capitalize()'''
 
     def __game_over(self) -> None:
-        if self.winner:
-            print(str(self.board))
-            print(f"{self.winner}, you win!! Press R to restart, or press any key to exit the game.")
-            response = str(input()).capitalize() 
-        else: # __game_over has been called without a winner
-            print(f"The game has ended in a draw. Press R to restart, or press any key to exit the game.")
-            response = str(input()).capitalize()
+        
+        response = self.IO.game_over_IO(self.winner)
         
         if response == "R":
             self.winner = None
