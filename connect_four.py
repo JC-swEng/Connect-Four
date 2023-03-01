@@ -9,6 +9,11 @@ class ErrorCode(Enum):
     COL_INVALID = 1
     COL_FULL = 2
 
+class RunMode(Enum):
+    TEST_MODE = 0
+    PLAY_MODE = 1
+    
+
 class ConnectFourBoard:
     
     def __init__(self, c: int = 7, r: int = 6, w: int = 4) -> None:  
@@ -109,13 +114,13 @@ class ConnectFourBoard:
         return  self.__vertical_win(row, col, color) or self.__horizontal_win(row, col, color) or self.__diagonal_neg_slope(row, col, color) or self.__diagonal_pos_slope(row, col, color)
 
 class InputOutput:
-    def __init__(self, play_mode: bool, moves_list: list) -> None:
-        self.play_mode = play_mode #if TRUE, user input will be asked for. Otherwise, input will be automatic from test functions
+    def __init__(self, run_mode: RunMode, moves_list: list) -> None:
+        self.run_mode = run_mode #if TRUE, user input will be asked for. Otherwise, input will be automatic from test functions
         self.moves_list = moves_list
         self.move_counter = 0
 
     def player_names(self) -> str:
-        if self.play_mode:
+        if self.run_mode is RunMode.PLAY_MODE:
             # take player's names
             print("Player 1, you are yellow. What is your name?")
             player1 = str(input())
@@ -127,35 +132,35 @@ class InputOutput:
         return player1, player2
 
     def game_over_IO(self, winner: str, board) -> str:
-        if self.play_mode:
-            print(str(board))
+        print(str(board))
+        if self.run_mode is RunMode.PLAY_MODE:
             if winner:
                 print(f"{winner}, you win!! Press R to restart, or press any key to exit the game.")
-                response = str(input()).capitalize() 
+                response = str(input())[0].capitalize() 
             else: # __game_over has been called without a winner
                 print(f"The game has ended in a draw. Press R to restart, or press any key to exit the game.")
-                response = str(input()).capitalize()
+                response = str(input())[0].capitalize()
         else:
             response = "Exit"
         
         return response
     
     def select_col_IO(self, board, player: str) -> int:
-        if self.play_mode:
+        if self.run_mode is RunMode.PLAY_MODE:
             last_col = chr(ord('A') - 1 + board.num_cols)
 
             print(f"{player}, it is your turn. Enter the column you would like to add a piece to (A-{last_col}):")
-            col = str(input()).capitalize()
+            col = str(input())[0].capitalize()
 
             col_code = board.check_col(col)
             while col_code is not ErrorCode.VALID:
                 if col_code is ErrorCode.COL_INVALID:
                     print(f"{player}, that column does not exist. Please pick another column (A-{last_col}):") 
-                    col = str(input()).capitalize()
+                    col = str(input())[0].capitalize()
                     col_code = board.check_col(col)
                 else:
                     print(f"{player}, that column is full. Please pick another column (A-{last_col}):") 
-                    col = str(input()).capitalize()
+                    col = str(input())[0].capitalize()
                     col_code = board.check_col(col)
         
         else:
@@ -172,32 +177,32 @@ class InputOutput:
 # Main gameplay. Set as while loop to play until exited.
 class GameLoop: 
     
-    def __init__(self, play_mode: bool = True, moves_list: list = []) -> None:
-        #self.play_mode = play_mode
+    def __init__(self, run_mode: RunMode = RunMode.PLAY_MODE, moves_list: list = []) -> None:
+        #self.run_mode = play_mode
         self.play = True
         self.winner = None
         self.player1 = None
         self.player2 = None
         #self.cols, self.rows, self.win_len = self.game_setup()
-        self.IO = InputOutput(play_mode, moves_list)
+        self.input_output = InputOutput(run_mode, moves_list)
         self.board = ConnectFourBoard()  #TODO add capability to change board size and win requirement
 
     '''def game_setup() -> int:
         print(f"Welcome to Connect Four! Would you like to play with the standard board size and win requirement? Y/N")
-        response = str(input()).capitalize()
+        response = str(input())[0].capitalize()
         while True:
             if response == "Y":
                 return 7, 6, 4
             elif response == "N":
                 print(f"")
-                response = str(input()).capitalize()
+                response = str(input())[0].capitalize()
             else:
                 print(f"Sorry, your input was not valid. Please type 'Y' for Yes or 'N' for No.")
-                response = str(input()).capitalize()'''
+                response = str(input())[0].capitalize()'''
 
     def __game_over(self) -> None:
         
-        response = self.IO.game_over_IO(self.winner, self.board)
+        response = self.input_output.game_over_IO(self.winner, self.board)
         
         if response == "R":
             self.winner = None
@@ -210,7 +215,7 @@ class GameLoop:
         print(str(self.board))
         
         #validate column chosen and repeat user input request if column is invalid or full
-        col_i = self.IO.select_col_IO(self.board, player)
+        col_i = self.input_output.select_col_IO(self.board, player)
         
         #add new piece to board and to columns matrix
         self.board.insert_new_piece(col_i, color)
@@ -226,7 +231,7 @@ class GameLoop:
 
 
     def play_game(self):
-        self.player1, self.player2 = self.IO.player_names()
+        self.player1, self.player2 = self.input_output.player_names()
 
         while self.play:
             #first player's turn
@@ -237,9 +242,10 @@ class GameLoop:
                 self.new_turn(self.player2, PlayerColor.RED.value)
         
         self.__game_over()
+        return self.winner
 
 
-'''new_game = GameLoop()
+'''new_game = GameLoop(RunMode.PLAY_MODE)
 
 while new_game.play:
     new_game.play_game()''' #UNCOMMENT TO PLAY THE GAME
@@ -252,25 +258,17 @@ def tests() -> None:
     #check if "column is full" check works
     #check if "column doesn't exist" works
     #check if win is correctly detected vertically
-    new_game = GameLoop(False, ['A', 'B', 'A', 'B', 'A', 'B', 'A', 'B','A', 'B', 'A', 'B',])
-    while new_game.play:
-        new_game.play_game()
-    assert new_game.winner == "player1", "Player1 should have won, but did not."
+    new_game = GameLoop(RunMode.TEST_MODE, ['A', 'B', 'A', 'B', 'A', 'B', 'A', 'B','A', 'B', 'A', 'B',])
+    assert new_game.play_game() == "player1", "Player1 should have won, but did not."
     #check if win is correctly detected horizontally
-    new_game = GameLoop(False, ['A', 'A', 'B', 'B', 'c', 'c', 'd','d', 'B', 'A', 'B',])
-    while new_game.play:
-        new_game.play_game()
-    assert new_game.winner == "player1", "Player1 should have won, but did not."
+    new_game = GameLoop(RunMode.TEST_MODE, ['A', 'A', 'B', 'B', 'c', 'c', 'd','d', 'B', 'A', 'B',])
+    assert new_game.play_game() == "player1", "Player1 should have won, but did not."
     #check if win is correctly detected neg slope diagonally
-    new_game = GameLoop(False, ['d', 'c', 'c', 'b', 'a', 'b', 'b', 'a','e', 'a', 'A', 'e',])
-    while new_game.play:
-        new_game.play_game()
-    assert new_game.winner == "player1", "Player1 should have won, but did not."
+    new_game = GameLoop(RunMode.TEST_MODE, ['d', 'c', 'c', 'b', 'a', 'b', 'b', 'a','e', 'a', 'A', 'e',])
+    assert new_game.play_game() == "player1", "Player1 should have won, but did not."
     #check if win is correctly detected pos slope diagonally
-    new_game = GameLoop(False, ['A', 'B', 'B', 'C', 'D', 'C', 'C', 'd','e', 'd', 'd', 'B',])
-    while new_game.play:
-        new_game.play_game()
-    assert new_game.winner == "player1", "Player1 should have won, but did not."
+    new_game = GameLoop(RunMode.TEST_MODE, ['A', 'B', 'B', 'C', 'D', 'C', 'C', 'd','e', 'd', 'd', 'B',])
+    assert new_game.play_game() == "player1", "Player1 should have won, but did not."
 
     #check if you can exit game at any time
     #check if you can restart game
