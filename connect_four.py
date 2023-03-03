@@ -114,7 +114,7 @@ class ConnectFourBoard:
         return  self.__vertical_win(row, col, color) or self.__horizontal_win(row, col, color) or self.__diagonal_neg_slope(row, col, color) or self.__diagonal_pos_slope(row, col, color)
 
 class InputOutput:
-    def __init__(self, run_mode: RunMode, moves_list: list) -> None:
+    def __init__(self, run_mode: RunMode, moves_list: list or None) -> None:
         self.run_mode = run_mode #if TRUE, user input will be asked for. Otherwise, input will be automatic from test functions
         self.moves_list = moves_list
         self.move_counter = 0
@@ -177,7 +177,7 @@ class InputOutput:
 # Main gameplay. Set as while loop to play until exited.
 class GameLoop: 
     
-    def __init__(self, run_mode: RunMode = RunMode.PLAY_MODE, moves_list: list = []) -> None:
+    def __init__(self, run_mode: RunMode = RunMode.PLAY_MODE, moves_list: list = None) -> None:
         #self.run_mode = play_mode
         self.play = True
         self.winner = None
@@ -230,7 +230,7 @@ class GameLoop:
             self.play = False
 
 
-    def play_game(self):
+    def play_game(self) -> str or None:
         self.player1, self.player2 = self.input_output.player_names()
 
         while self.play:
@@ -245,9 +245,9 @@ class GameLoop:
         return self.winner
 
 
-'''new_game = GameLoop(RunMode.PLAY_MODE)
+new_game = GameLoop(RunMode.PLAY_MODE)
 
-while new_game.play:
+'''while new_game.play:
     new_game.play_game()''' #UNCOMMENT TO PLAY THE GAME
 
 
